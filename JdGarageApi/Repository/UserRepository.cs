@@ -29,20 +29,23 @@ namespace JdGarageApi.Repository
             _mapper = mapper;
         }
 
-        public AppUser GetUser (string userId)
+        public AppUser GetUser(string userId)
         {
-            return _db.AppUser.FirstOrDefault(x => x.Id == userId);
+            return _userManager.Users.FirstOrDefault(x => x.Id == userId);
         }
+
 
         public ICollection<AppUser> GetUsers()
         {
-            return _db.AppUser.OrderBy(x => x.UserName).ToList();
+            return _userManager.Users.OrderBy(x => x.UserName).ToList();
+
         }
 
         public bool IsUniqueUser(string user)
         {
-            var userBd = _db.AppUser.FirstOrDefault(x =>x.UserName == user);
-            if(userBd == null)
+            var userBd = _userManager.Users.FirstOrDefault(x => x.UserName == user);
+
+            if (userBd == null)
             {
                 return true;
             }
@@ -51,48 +54,51 @@ namespace JdGarageApi.Repository
 
         public async Task<UserLoginResponseDto> Login(UserLoginDto userLoginDto)
         {
-            var user = _db.AppUser.FirstOrDefault(
-                item => item.UserName.ToLower() == userLoginDto.UserName.ToLower());
-            bool isValid = await _userManager.CheckPasswordAsync(user, userLoginDto.Password);
-
-            //Validar si el usuario no existe con la combinación de usuario y contraseña
-            if (user == null || isValid == false)
+            var user = await _userManager.FindByNameAsync(userLoginDto.UserName);
+            if (user == null)
             {
                 return new UserLoginResponseDto()
                 {
                     Token = "",
-                    User = null
+                    User = null,
+                    Roles = new List<string>()
+                };
+            }
+            bool isValid = await _userManager.CheckPasswordAsync(user, userLoginDto.Password);
+
+            if (!isValid)
+            {
+                return new UserLoginResponseDto()
+                {
+                    Token = "",
+                    User = null,
+                    Roles = new List<string>()
                 };
             }
 
-            //Aqui si existe el usuario entonces podemos procesar el login
             var roles = await _userManager.GetRolesAsync(user);
-            var tokenConfiguration = new JwtSecurityTokenHandler();
+            var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(secretKey);
+            var identityClaims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.UserName)
+            };
 
-
-            //SecurityTokenDescriptor: Clase usada para escribir las propiedades del token
+            identityClaims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                    new Claim(ClaimTypes.Name, user.UserName.ToString()),
-                    new Claim(ClaimTypes.Role, roles.FirstOrDefault())
-                }),
+                Subject = new ClaimsIdentity(identityClaims),
                 Expires = DateTime.UtcNow.AddDays(7),
-
-                SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature) //HmacSha256Signature-> Se especifica que se usará ese algoritmo (HmacSha256Signature) para la firma del token
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
-            var token = tokenConfiguration.CreateToken(tokenDescriptor);
-
-            UserLoginResponseDto userLoginResponseDto = new UserLoginResponseDto()
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return new UserLoginResponseDto()
             {
-                Token = tokenConfiguration.WriteToken(token),
+                Token = tokenHandler.WriteToken(token),
                 User = _mapper.Map<UserDataDto>(user),
+                Roles = roles.ToList()
             };
-
-            return userLoginResponseDto;
         }
 
         public async Task<UserDataDto> Register(UserRegisterDto userRegisterDto)
@@ -101,24 +107,36 @@ namespace JdGarageApi.Repository
             {
                 UserName = userRegisterDto.UserName,
                 Email = userRegisterDto.UserName,
-                NormalizedEmail = userRegisterDto.UserName.ToUpper(),
                 Name = userRegisterDto.Name
             };
 
             var result = await _userManager.CreateAsync(user, userRegisterDto.Password);
-            if(result.Succeeded)
-            {
-                if(!_roleManager.RoleExistsAsync("Admin").GetAwaiter().GetResult())
-                {
-                    await _roleManager.CreateAsync(new IdentityRole("Admin"));
-                    await _roleManager.CreateAsync(new IdentityRole("Registrado"));
-                }
 
-                await _userManager.AddToRoleAsync(user, "Admin");
-                var userReturned = _db.AppUser.FirstOrDefault(item => item.UserName == userRegisterDto.UserName);
-                return _mapper.Map<UserDataDto>(userReturned);
+            if (!result.Succeeded) return new UserDataDto();
+
+            var validRoles = new List<string> { "Administrador", "Vendedor", "Comprador" };
+
+            foreach (var role in validRoles)
+            {
+                if (!await _roleManager.RoleExistsAsync(role))
+                    await _roleManager.CreateAsync(new IdentityRole(role));
             }
-            return new UserDataDto();
+
+            if (userRegisterDto.Roles == null || userRegisterDto.Roles.Count == 0)
+            {
+                await _userManager.AddToRoleAsync(user, "Comprador");
+            }
+            else
+            {
+                foreach (var role in userRegisterDto.Roles)
+                {
+                    if (validRoles.Contains(role))
+                        await _userManager.AddToRoleAsync(user, role);
+                }
+            }
+            var createdUser = await _userManager.FindByNameAsync(user.UserName);
+            return _mapper.Map<UserDataDto>(createdUser);
         }
+
     }
 }

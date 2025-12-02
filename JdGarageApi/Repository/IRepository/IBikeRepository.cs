@@ -6,6 +6,7 @@ namespace JdGarageApi.Repository.IRepository
     {
         ICollection<Bike> GetBikes(int pageNumber, int pageSize); //Método para retornar las motocicletas por página
         ICollection<Bike> GetBikesInBikeCategory(int bikeCategoryId); // Método nos permite obtener las motocicletas existentes en una categoría 
+        ICollection<Bike> GetBikesByBranch(string brand); // Método nos permite obtener las motocicletas existentes de una misma marca
         IEnumerable<Bike> ShareBike(string bikeName); // Método que recibe el valor del modelo que se le envie por parámetro y retorna un resultado de búsqueda
         Bike GetBike(int bikeId); //Método que nos retorna las motocicletas por ID
         bool ExistBike(int bikeId); //Método que valida por ID si la motocicleta existe

@@ -12,7 +12,7 @@ namespace JdGarageApi.BikesMappers
             CreateMap<BikeCategory, CreateBikeCategoryDto>().ReverseMap(); 
             CreateMap<Bike, BikeDto>().ReverseMap();
             CreateMap<Bike, CreateBikeDto>().ReverseMap();
-            CreateMap<Bike, UpdateBikeDto>().ReverseMap();
+            CreateMap<UpdateBikeDto, Bike>().ForAllMembers(opt =>opt.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<AppUser, UserDataDto>().ReverseMap();
             CreateMap<AppUser, UserDto>().ReverseMap();
             CreateMap<Brands, BrandsDto>().ReverseMap();

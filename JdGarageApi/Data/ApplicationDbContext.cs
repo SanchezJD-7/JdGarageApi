@@ -18,7 +18,6 @@ namespace JdGarageApi.Data
         public DbSet<BikeCategory> BikeCategory { get; set; }
         public DbSet<Bike> Bike { get; set; }
         public DbSet<User> User { get; set; }
-        public DbSet<AppUser> AppUser { get; set; }
         public DbSet<Brands> Brands { get; set; }
 
     }

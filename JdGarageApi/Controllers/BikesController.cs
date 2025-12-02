@@ -149,7 +149,7 @@ namespace JdGarageApi.Controllers
                 return NotFound($"No se encontró la motocicleta con ID {bikeId}");
             }
 
-            var bike = _mapper.Map<Bike>(updateBikeDto);
+            var bike = _mapper.Map(updateBikeDto, bikeExist);
 
             //Actualizar archivo
             if (updateBikeDto.Image != null)
@@ -256,6 +256,24 @@ namespace JdGarageApi.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error recuperando datos de la aplicación");
             }
 
+        }
+
+        [AllowAnonymous]
+        [HttpGet("Brand")]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult GetBikesByBranch([FromQuery] string brand)
+        {
+            try
+            {
+                var bikesResponse = _bikeRepository.GetBikesByBranch(brand);
+                return Ok(bikesResponse);
+
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error recuperando motocicletas de la marca");
+            }
         }
 
     }
