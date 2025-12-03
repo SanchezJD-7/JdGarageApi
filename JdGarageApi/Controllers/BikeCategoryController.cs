@@ -58,7 +58,7 @@ namespace JdGarageApi.Controllers
         }
 
         //Crear nueva categoría
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Administrador")]
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -91,7 +91,7 @@ namespace JdGarageApi.Controllers
         }
 
         //Actualizar el campo de una categoría
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Administrador")]
         [HttpPatch ("{bikeCategoryId:int}", Name = "UpdatePatchBikeCategory")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -128,7 +128,7 @@ namespace JdGarageApi.Controllers
         }
 
         //Actualizar una categoría
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Administrador")]
         [HttpPut("{bikeCategoryId:int}", Name = "UpdatePuthBikeCategory")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -165,7 +165,7 @@ namespace JdGarageApi.Controllers
         }
 
         //Eliminar una categoría
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Administrador")]
         [HttpDelete("{bikeCategoryId:int}", Name = "DeleteBikeCategory")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
