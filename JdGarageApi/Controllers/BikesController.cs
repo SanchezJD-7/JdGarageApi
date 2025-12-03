@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace JdGarageApi.Controllers
 {
     [Route("api/v{version:apiVersion}/bikes")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Administrador")]
     [ApiController]
     [ApiVersion("1.0")]
     public class BikesController : ControllerBase

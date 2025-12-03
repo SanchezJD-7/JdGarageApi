@@ -26,7 +26,7 @@ namespace JdGarageApi.Controllers
         }
 
         //Obtener todos los usuarios
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Administrador")]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -43,7 +43,7 @@ namespace JdGarageApi.Controllers
         }
 
         //Obtener cada usario de manera individual
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Administrador")]
         [HttpGet("{userId}", Name = "GetUser")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

@@ -2,7 +2,6 @@
 using JdGarageApi.Models;
 using JdGarageApi.Repository.IRepository;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 namespace JdGarageApi.Repository
 {

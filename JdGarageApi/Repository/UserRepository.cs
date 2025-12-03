@@ -8,7 +8,6 @@ using JdGarageApi.Repository.IRepository;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using XSystem.Security.Cryptography;
 
 namespace JdGarageApi.Repository
 {
