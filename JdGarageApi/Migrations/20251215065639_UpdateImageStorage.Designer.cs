@@ -4,6 +4,7 @@ using JdGarageApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace JdGarageApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251215065639_UpdateImageStorage")]
+    partial class UpdateImageStorage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -131,9 +134,6 @@ namespace JdGarageApi.Migrations
                     b.Property<string>("FuelType")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Line")
                         .HasColumnType("nvarchar(max)");
 
@@ -174,6 +174,12 @@ namespace JdGarageApi.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TransmissionType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UrlImage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UrlLocalImage")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Weight")
@@ -220,7 +226,7 @@ namespace JdGarageApi.Migrations
                     b.Property<string>("BrandType")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("CreationDate")
+                    b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ImageUrl")
