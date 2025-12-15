@@ -7,6 +7,7 @@ namespace JdGarageApi.Models
     {
         [Key]
         public int Id { get; set; }
+
         public string Brand { get; set; }
         public string Line { get; set; }
         public string Displacement { get; set; }
@@ -30,12 +31,11 @@ namespace JdGarageApi.Models
         public string Torque { get; set; }
         public string Weight { get; set; }
         public string Power { get; set; }
-        public string? UrlImage { get; set; }
-        public string? UrlLocalImage { get; set; }
+        public string ImageUrl { get; set; }
         public DateTime CreationDate { get; set; }
         public string ClassificationDisplacement { get; set; }
         public int BikeCategoryId { get; set; }
-        [ForeignKey("BikeCategoryId")]
+        [ForeignKey(nameof(BikeCategoryId))]
         public BikeCategory BikeCategory { get; set; }
     }
 }

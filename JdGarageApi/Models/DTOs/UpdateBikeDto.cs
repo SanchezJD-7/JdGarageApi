@@ -3,6 +3,7 @@
     public class UpdateBikeDto
     {
         public int Id { get; set; }
+
         public string? Brand { get; set; }
         public string? Line { get; set; }
         public string? Displacement { get; set; }
@@ -22,8 +23,6 @@
         public string? Torque { get; set; }
         public string? Weight { get; set; }
         public string? Power { get; set; }
-        public string? UrlImage { get; set; }
-        public string? UrlLocalImage { get; set; }
         public IFormFile? Image { get; set; }
         public DateTime? CreationDate { get; set; }
         public string? ClassificationDisplacement { get; set; }

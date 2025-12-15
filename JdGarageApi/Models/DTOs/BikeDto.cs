@@ -26,8 +26,7 @@
         public string Torque { get; set; }
         public string Weight { get; set; }
         public string Power { get; set; }
-        public string? UrlImage { get; set; }
-        public string? UrlLocalImage { get; set; }
+         public string? ImageUrl { get; set; }
         public DateTime CreationDate { get; set; }
         public string ClassificationDisplacement { get; set; }
         public int BikeCategoryId { get; set; }

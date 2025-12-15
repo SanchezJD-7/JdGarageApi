@@ -92,7 +92,7 @@ namespace JdGarageApi.Repository
             return query.ToList();
         }
 
-        public ICollection<Bike> GetBikesByBranch(string brand)
+        public ICollection<Bike> GetBikesByBrand(string brand)
         {
             return _db.Bike.Where(item => item.Brand == brand).ToList();
         }

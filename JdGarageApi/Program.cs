@@ -14,7 +14,6 @@ using XAct;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionString")));
 
 builder.Services.AddControllers();
@@ -53,14 +52,8 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1.0",
         Title = "JD Garage Api",
         Description = "Garage Api",
-        //TermsOfService = new Uri("https://render2web.com/promociones"),
-        //Contact = new OpenApiContact
-        //{
-        //Name = "render2web",
-        //Url = new Uri("https://render2web.com/promociones")
-        //},
     });
- 
+
 });
 
 //Repositorios
@@ -68,10 +61,10 @@ builder.Services.AddScoped<IBikeCategoryRepository, BikeCategoryRepository>();
 builder.Services.AddScoped<IBikeRepository, BikeRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IBrandRepository, BrandsRepository>();
+builder.Services.AddScoped<CloudinaryService>();
 
 var key = builder.Configuration.GetValue<string>("ApiSettings:Secret");
 
-//Soporte para autenticación con .NET Identity
 builder.Services.AddIdentity<AppUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>();
 
 var apiVersioningBuilder = builder.Services.AddApiVersioning(option =>
@@ -79,9 +72,6 @@ var apiVersioningBuilder = builder.Services.AddApiVersioning(option =>
     option.AssumeDefaultVersionWhenUnspecified = true;
     option.DefaultApiVersion = new ApiVersion(1, 0);
     option.ReportApiVersions = true;
-    //option.ApiVersionReader = ApiVersionReader.Combine(
-    //    new QueryStringApiVersionReader("api-version")//?api-version=1.0
-    //);
 });
 
 apiVersioningBuilder.AddApiExplorer(
@@ -113,12 +103,8 @@ builder.Services.AddAuthentication(
         ValidateIssuer = false,
         ValidateAudience = false
     };
- });
+});
 
-//Soporte para CORS
-//Se puede habilitar: 1/.Un dominio - 2/.Múltiples dominios - 3/.Cualquier dominio (Tener en cuenta la seguridad para este caso)
-//Usamos de ejemplo el dominio: http://localhost:3001, se debe cambiar por el correcto
-//Se usa (*) para habilitar todos los dominios
 builder.Services.AddCors(p => p.AddPolicy("PolicyCors", build =>
 {
     build.WithOrigins("http://localhost:5173").AllowAnyMethod().AllowAnyHeader();
@@ -126,7 +112,6 @@ builder.Services.AddCors(p => p.AddPolicy("PolicyCors", build =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -136,15 +121,10 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-//Soporte para archivos estáticos como imágen
-app.UseStaticFiles();   
-
 app.UseHttpsRedirection();
 
-//Soporte para Cors
 app.UseCors("PolicyCors");
 
-//Soporte para autenticación
 app.UseAuthentication();
 
 app.UseAuthorization();

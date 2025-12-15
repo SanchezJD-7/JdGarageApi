@@ -7,7 +7,6 @@
         public string Displacement { get; set; }
         public string Model { get; set; }
         public string Color { get; set; }
-        public string? UrlImage { get; set; }
         public string Price { get; set; }
         public string Mileage { get; set; }
         public string Location { get; set; }
@@ -26,7 +25,7 @@
         public string Torque { get; set; }
         public string Weight { get; set; }
         public string Power { get; set; }
-        public IFormFile Image { get; set; }
+        public IFormFile? Image { get; set; }
         public string ClassificationDisplacement { get; set; }
         public int BikeCategoryId { get; set; }
     }
