@@ -8,6 +8,7 @@ using JdGarageApi.Repository.IRepository;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
 
 namespace JdGarageApi.Repository
 {
@@ -33,11 +34,9 @@ namespace JdGarageApi.Repository
             return _userManager.Users.FirstOrDefault(x => x.Id == userId);
         }
 
-
         public ICollection<AppUser> GetUsers()
         {
             return _userManager.Users.OrderBy(x => x.UserName).ToList();
-
         }
 
         public bool IsUniqueUser(string user)
@@ -51,48 +50,48 @@ namespace JdGarageApi.Repository
             return false;
         }
 
-        public async Task<UserLoginResponseDto> Login(UserLoginDto userLoginDto)
+        public async Task<UserLoginResponseDto> Login(UserLoginDto dto)
         {
-            var user = await _userManager.FindByNameAsync(userLoginDto.UserName);
-            if (user == null)
-            {
-                return new UserLoginResponseDto()
-                {
-                    Token = "",
-                    User = null,
-                    Roles = new List<string>()
-                };
-            }
-            bool isValid = await _userManager.CheckPasswordAsync(user, userLoginDto.Password);
+            AppUser user;
+            if (dto.Identifier.Contains("@"))
+                user = await _userManager.FindByEmailAsync(dto.Identifier);
+            else
+                user = await _userManager.FindByNameAsync(dto.Identifier);
 
+            if (user == null)
+                return new UserLoginResponseDto { Token = "", User = null, Roles = new() };
+
+            var isValid = await _userManager.CheckPasswordAsync(user, dto.Password);
             if (!isValid)
-            {
-                return new UserLoginResponseDto()
-                {
-                    Token = "",
-                    User = null,
-                    Roles = new List<string>()
-                };
-            }
+                return new UserLoginResponseDto { Token = "", User = null, Roles = new() };
 
             var roles = await _userManager.GetRolesAsync(user);
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(secretKey);
-            var identityClaims = new List<Claim>
+
+            var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.UserName)
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Name, user.Name),
+                new Claim("username", user.UserName),
+                new Claim(ClaimTypes.Email, user.Email)
             };
 
-            identityClaims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+            claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+
+            var key = Encoding.ASCII.GetBytes(secretKey);
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(identityClaims),
+                Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddHours(6),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256Signature)
             };
 
+            var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            return new UserLoginResponseDto()
+
+            return new UserLoginResponseDto
             {
                 Token = tokenHandler.WriteToken(token),
                 User = _mapper.Map<UserDataDto>(user),
@@ -100,42 +99,49 @@ namespace JdGarageApi.Repository
             };
         }
 
-        public async Task<UserDataDto> Register(UserRegisterDto userRegisterDto)
+        public async Task<UserDataDto> Register(UserRegisterDto dto)
         {
-            AppUser user = new AppUser()
+            if (await _userManager.FindByNameAsync(dto.UserName) != null)
+                throw new Exception("El nombre de usuario ya existe");
+
+            var documentExists = await _userManager.Users.AnyAsync(u => u.DocumentNumber == dto.DocumentNumber);
+            if (documentExists)
+                throw new Exception("El número de documento ya está registrado");
+
+            var fullName = $"{dto.FirstName.Trim()} {dto.LastName.Trim()}";
+
+            var user = new AppUser
             {
-                UserName = userRegisterDto.UserName,
-                Email = userRegisterDto.UserName,
-                Name = userRegisterDto.Name
+                UserName = dto.UserName.Trim(),
+                Email = dto.Email.Trim(),
+                PhoneNumber = dto.PhoneNumber,
+                FirstName = dto.FirstName.Trim(),
+                LastName = dto.LastName.Trim(),
+                Name = fullName,
+                DocumentType = dto.DocumentType?.ToUpper(),
+                DocumentNumber = dto.DocumentNumber?.Trim(),
+                BirthDate = dto.BirthDate,
+                State = dto.State,
+                City = dto.City,
+                Address = dto.Address
             };
 
-            var result = await _userManager.CreateAsync(user, userRegisterDto.Password);
+            var result = await _userManager.CreateAsync(user, dto.Password);
 
-            if (!result.Succeeded) return new UserDataDto();
-
-            var validRoles = new List<string> { "Administrador", "Vendedor", "Comprador" };
-
-            foreach (var role in validRoles)
+            if (!result.Succeeded)
             {
-                if (!await _roleManager.RoleExistsAsync(role))
-                    await _roleManager.CreateAsync(new IdentityRole(role));
+                var errors = string.Join(" | ", result.Errors.Select(e => e.Description));
+                throw new Exception(errors);
             }
 
-            if (userRegisterDto.Roles == null || userRegisterDto.Roles.Count == 0)
+            if (dto.RequestAdminRole)
             {
-                await _userManager.AddToRoleAsync(user, "Comprador");
+                const string adminRole = "Administrador";
+                if (!await _roleManager.RoleExistsAsync(adminRole))
+                    await _roleManager.CreateAsync(new IdentityRole(adminRole));
+                await _userManager.AddToRoleAsync(user, adminRole);
             }
-            else
-            {
-                foreach (var role in userRegisterDto.Roles)
-                {
-                    if (validRoles.Contains(role))
-                        await _userManager.AddToRoleAsync(user, role);
-                }
-            }
-            var createdUser = await _userManager.FindByNameAsync(user.UserName);
-            return _mapper.Map<UserDataDto>(createdUser);
+            return _mapper.Map<UserDataDto>(user);
         }
-
     }
 }

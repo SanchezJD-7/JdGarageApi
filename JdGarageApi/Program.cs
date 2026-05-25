@@ -59,6 +59,9 @@ builder.Services.AddSwaggerGen(options =>
 //Repositorios
 builder.Services.AddScoped<IBikeCategoryRepository, BikeCategoryRepository>();
 builder.Services.AddScoped<IBikeRepository, BikeRepository>();
+builder.Services.AddScoped<IVehicleRepository<Bike>, BikeRepository>();
+builder.Services.AddScoped<ICarRepository, CarRepository>();
+builder.Services.AddScoped<IVehicleRepository<Car>, CarRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IBrandRepository, BrandsRepository>();
 builder.Services.AddScoped<CloudinaryService>();

@@ -25,7 +25,6 @@ namespace JdGarageApi.Controllers
             this._responseApi = new();
         }
 
-        //Obtener todos los usuarios
         [Authorize(Roles = "Administrador")]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -42,7 +41,6 @@ namespace JdGarageApi.Controllers
             return Ok(userListDto);
         }
 
-        //Obtener cada usario de manera individual
         [Authorize(Roles = "Administrador")]
         [HttpGet("{userId}", Name = "GetUser")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -61,57 +59,47 @@ namespace JdGarageApi.Controllers
             return Ok(itemUserDto);
         }
 
-        //Registrar un usuario a través de la api
         [AllowAnonymous]
         [HttpPost("register")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Register([FromBody] UserRegisterDto userRegisterDto)
+        [ProducesResponseType(typeof(UserDataDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> Register([FromBody] UserRegisterDto dto)
         {
-            bool validateUniqueUserName = _usersRepository.IsUniqueUser(userRegisterDto.UserName);
-            if (!validateUniqueUserName)
+            try
             {
-                _responseApi.StatusCode = HttpStatusCode.BadRequest;
-                _responseApi.IsSuccess = false;
-                _responseApi.ErrorMessage.Add("El nombre de usuario ya existe");
-                return BadRequest(_responseApi);
+                var user = await _usersRepository.Register(dto);
+                return CreatedAtAction(nameof(Register), new { id = user.Id }, user);
             }
-
-            var user = await _usersRepository.Register(userRegisterDto);
-            if (user == null)
+            catch (Exception ex)
             {
-                _responseApi.StatusCode = HttpStatusCode.BadRequest;
-                _responseApi.IsSuccess = false;
-                _responseApi.ErrorMessage.Add("Error en el registro");
-                return BadRequest(_responseApi);
+                return Conflict(new ProblemDetails
+                {
+                    Status = StatusCodes.Status409Conflict,
+                    Title = "Conflict",
+                    Detail = ex.Message
+                });
             }
-
-            _responseApi.StatusCode = HttpStatusCode.OK;
-            _responseApi.IsSuccess = true;
-            return Ok(_responseApi);
         }
 
         [AllowAnonymous]
         [HttpPost("login")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
+        [ProducesResponseType(typeof(UserLoginResponseDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> Login([FromBody] UserLoginDto dto)
         {
-            var loginResponse = await _usersRepository.Login(userLoginDto);
-            if (loginResponse.User == null || string.IsNullOrEmpty(loginResponse.Token))
+            var response = await _usersRepository.Login(dto);
+
+            if (response.User == null || string.IsNullOrEmpty(response.Token))
             {
-                _responseApi.StatusCode = HttpStatusCode.BadRequest;
-                _responseApi.IsSuccess = false;
-                _responseApi.ErrorMessage.Add("El nombre de usuario o password son incorrectos");
-                return BadRequest(_responseApi);
+                return Unauthorized(new ProblemDetails
+                {
+                    Status = StatusCodes.Status401Unauthorized,
+                    Title = "Unauthorized",
+                    Detail = "Usuario o contraseña incorrectos"
+                });
             }
-            
-            _responseApi.StatusCode = HttpStatusCode.OK;
-            _responseApi.IsSuccess = true;
-            _responseApi.Result = loginResponse;
-            return Ok(_responseApi);
+
+            return Ok(response);
         }
     }
 }
