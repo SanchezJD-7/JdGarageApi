@@ -4,9 +4,8 @@ namespace JdGarageApi.Models.DTOs
 {
     public class UserLoginDto
     {
-        [Required(ErrorMessage = "El usuario es obligatorio")]
-        public string UserName { get; set; }
-        [Required(ErrorMessage = "La contraseña es obligatoria")]
+        public string Identifier { get; set; }
         public string Password { get; set; }
     }
+
 }

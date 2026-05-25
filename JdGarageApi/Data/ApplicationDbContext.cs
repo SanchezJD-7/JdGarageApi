@@ -14,11 +14,19 @@ namespace JdGarageApi.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<Vehicle>(entity =>
+            {
+                entity.ToTable("Vehicles");
+                entity.HasDiscriminator<string>("VehicleType")
+                    .HasValue<Bike>("Bike")
+                    .HasValue<Car>("Car");
+            });
         }
+
         public DbSet<BikeCategory> BikeCategory { get; set; }
-        public DbSet<Bike> Bike { get; set; }
+        public DbSet<Vehicle> Vehicles { get; set; }
         public DbSet<User> User { get; set; }
         public DbSet<Brands> Brands { get; set; }
-
     }
 }

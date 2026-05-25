@@ -18,6 +18,8 @@ public class CloudinaryService
 
     public Task<string> UploadBikeImageAsync(IFormFile file) => UploadImageAsync(file, folder: "jdgarage/bikes", allowedExtensions: null, allowedContentTypes: new[] { "image/" });
 
+    public Task<string> UploadCarImageAsync(IFormFile file) => UploadImageAsync(file, folder: "jdgarage/cars", allowedExtensions: null, allowedContentTypes: new[] { "image/" });
+
     private async Task<string> UploadImageAsync(IFormFile file, string folder, string[]? allowedExtensions, string[]? allowedContentTypes)
     {
         ValidateImage(file, allowedExtensions, allowedContentTypes);
