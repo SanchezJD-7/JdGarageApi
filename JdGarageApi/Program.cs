@@ -1,9 +1,11 @@
 ﻿using System.Text;
 using JdGarageApi.BikesMappers;
 using JdGarageApi.Data;
+using JdGarageApi.Hubs;
 using JdGarageApi.Models;
 using JdGarageApi.Repository;
 using JdGarageApi.Repository.IRepository;
+using JdGarageApi.Services;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -65,6 +67,7 @@ builder.Services.AddScoped<IVehicleRepository<Car>, CarRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IBrandRepository, BrandsRepository>();
 builder.Services.AddScoped<CloudinaryService>();
+builder.Services.AddScoped<IKpiService, KpiService>();
 
 var key = builder.Configuration.GetValue<string>("ApiSettings:Secret");
 
@@ -88,6 +91,9 @@ apiVersioningBuilder.AddApiExplorer(
 //Automapper
 builder.Services.AddAutoMapper(typeof(BikesMapper));
 
+// SignalR
+builder.Services.AddSignalR();
+
 //Autenticación
 builder.Services.AddAuthentication(
     x =>
@@ -110,7 +116,10 @@ builder.Services.AddAuthentication(
 
 builder.Services.AddCors(p => p.AddPolicy("PolicyCors", build =>
 {
-    build.WithOrigins("http://localhost:5173").AllowAnyMethod().AllowAnyHeader();
+    build.WithOrigins("http://localhost:5173")
+         .AllowAnyMethod()
+         .AllowAnyHeader()
+         .AllowCredentials();
 }));
 
 var app = builder.Build();
@@ -133,5 +142,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<KpiHub>("/hubs/kpis");
 
 app.Run();

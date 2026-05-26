@@ -5,10 +5,11 @@ using JdGarageApi.Data;
 using JdGarageApi.Models;
 using JdGarageApi.Models.DTOs;
 using JdGarageApi.Repository.IRepository;
+using JdGarageApi.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace JdGarageApi.Repository
 {
@@ -19,14 +20,16 @@ namespace JdGarageApi.Repository
         private readonly UserManager<AppUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IMapper _mapper;
+        private readonly IKpiService _kpiService;
 
-        public UserRepository(ApplicationDbContext db, IConfiguration config, UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, IMapper mapper)
+        public UserRepository(ApplicationDbContext db, IConfiguration config, UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, IMapper mapper, IKpiService kpiService)
         {
             _db = db;
             secretKey = config.GetValue<string>("ApiSettings:Secret");
             _userManager = userManager;
             _roleManager = roleManager;
             _mapper = mapper;
+            _kpiService = kpiService;
         }
 
         public AppUser GetUser(string userId)
@@ -141,6 +144,9 @@ namespace JdGarageApi.Repository
                     await _roleManager.CreateAsync(new IdentityRole(adminRole));
                 await _userManager.AddToRoleAsync(user, adminRole);
             }
+
+            await _kpiService.BroadcastAsync();
+
             return _mapper.Map<UserDataDto>(user);
         }
     }

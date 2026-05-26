@@ -1,6 +1,7 @@
 using JdGarageApi.Data;
 using JdGarageApi.Models;
 using JdGarageApi.Repository.IRepository;
+using JdGarageApi.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace JdGarageApi.Repository
@@ -8,23 +9,31 @@ namespace JdGarageApi.Repository
     public class VehicleRepository<TVehicle> : IVehicleRepository<TVehicle> where TVehicle : Vehicle
     {
         protected readonly ApplicationDbContext _db;
+        private readonly IKpiService _kpiService;
 
-        public VehicleRepository(ApplicationDbContext db)
+        public VehicleRepository(ApplicationDbContext db, IKpiService kpiService)
         {
             _db = db;
+            _kpiService = kpiService;
         }
 
         public virtual bool Create(TVehicle vehicle)
         {
             vehicle.CreationDate = DateTime.Now;
             _db.Set<TVehicle>().Add(vehicle);
-            return Save();
+            var result = Save();
+            if (result)
+                _ = BroadcastKpiUpdateAsync();
+            return result;
         }
 
         public virtual bool Delete(TVehicle vehicle)
         {
             _db.Set<TVehicle>().Remove(vehicle);
-            return Save();
+            var result = Save();
+            if (result)
+                _ = BroadcastKpiUpdateAsync();
+            return result;
         }
 
         public virtual bool Exists(int id)
@@ -79,6 +88,11 @@ namespace JdGarageApi.Repository
         public virtual ICollection<TVehicle> GetByBrand(string brand)
         {
             return _db.Set<TVehicle>().Where(item => item.Brand == brand).ToList();
+        }
+
+        private async Task BroadcastKpiUpdateAsync()
+        {
+            await _kpiService.BroadcastAsync();
         }
     }
 }
