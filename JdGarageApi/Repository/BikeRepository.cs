@@ -1,13 +1,14 @@
 ﻿using JdGarageApi.Data;
 using JdGarageApi.Models;
 using JdGarageApi.Repository.IRepository;
+using JdGarageApi.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace JdGarageApi.Repository
 {
     public class BikeRepository : VehicleRepository<Bike>, IBikeRepository
     {
-        public BikeRepository(ApplicationDbContext db) : base(db) { }
+        public BikeRepository(ApplicationDbContext db, IKpiService kpiService) : base(db, kpiService) { }
 
         public ICollection<Bike> GetBikesInBikeCategory(int bikeCategoryId)
         {
